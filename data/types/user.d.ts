@@ -1,3 +1,3 @@
 export interface UsersWhere {
-  email: String;
+    email: String;
 }
