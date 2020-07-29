@@ -1,0 +1,7 @@
+.vercel
+
+.env
+
+node_modules
+
+yarn.lock
