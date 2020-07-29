@@ -32,6 +32,7 @@ export const getVerificationRequestByUserId: any = async (userId: number) => {
                 error.response.errors
             );
         });
+    return output;
 };
 
 export const getVerificationRequestByToken: any = async (

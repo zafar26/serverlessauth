@@ -1,6 +1,6 @@
 import { fetcher, mutator } from "../utils/graphql";
 
-export const getUserByEmail: null | any = async (email: string) => {
+export const getUserByEmail: any = async (email: string) => {
     const query = `query ($email: String!) {
         user(where: {email: {_eq: $email}}, order_by: {created_at: desc}, limit : 1) {
             id
@@ -27,7 +27,7 @@ export const getUserByEmail: null | any = async (email: string) => {
     return output;
 };
 
-export const insertOneUser: null | any = async (obj) => {
+export const insertOneUser: any = async (obj) => {
     const mutation = `mutation ($oneUser : user_insert_input!) {
         insert_user_one(object :$oneUser) {
             id

@@ -53,6 +53,8 @@ export default async (req: NowRequest, res: NowResponse) => {
         return;
     }
 
+    const emailLowered = `${email}`.toLowerCase();
+
     // get verification_request object from db
     const verificationRequest = await getVerificationRequestByToken(
         token,
@@ -83,7 +85,7 @@ export default async (req: NowRequest, res: NowResponse) => {
         }
 
         // check email of verification_request user
-        if (email == verificationRequest.user.email) {
+        if (emailLowered == verificationRequest.user.email) {
             // check user is_enabled
             if (!verificationRequest.user.is_enabled) {
                 res.statusCode = forbiddenRequest;

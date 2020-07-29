@@ -75,8 +75,10 @@ export default async (req: NowRequest, res: NowResponse) => {
         return;
     }
 
+    const emailLowered = `${email}`.toLowerCase();
+
     // get user object from db
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(emailLowered);
 
     // declare userId
     let userId = null;
@@ -139,8 +141,8 @@ export default async (req: NowRequest, res: NowResponse) => {
             userId = user.id;
         } else {
             // insert user with just email and remaining with default data
-            const insertedUser = insertOneUser({
-                email: email,
+            const insertedUser = await insertOneUser({
+                email: emailLowered,
             });
 
             // check insertion of user
@@ -158,7 +160,7 @@ export default async (req: NowRequest, res: NowResponse) => {
     }
 
     // get verification_request object from db
-    const verificationRequest = getVerificationRequestByUserId(userId);
+    const verificationRequest = await getVerificationRequestByUserId(userId);
 
     // check verification_request existence in db
     if (verificationRequest) {
@@ -183,23 +185,23 @@ export default async (req: NowRequest, res: NowResponse) => {
     }
 
     // insert verification_request with user_id, mode, expires_at and remaining with default data
-    // const insertedVerificationRequest = insertOneVerificationRequest({
-    //     user_id: userId,
-    //     mode: mode,
-    //     expires_at: zonedTimeToUtc(addMinutes(new Date(), 5), "Asia/Kolkata"),
-    // });
+    const insertedVerificationRequest = await insertOneVerificationRequest({
+        user_id: userId,
+        mode: mode,
+        expires_at: zonedTimeToUtc(addMinutes(new Date(), 5), "Asia/Kolkata"),
+    });
 
     // check insertion of verification request
-    // if (!insertedVerificationRequest) {
-    //     res.statusCode = forbiddenRequest;
-    //     res.send({
-    //         message: "verification request not inserted",
-    //     });
-    //     return;
-    // }
+    if (!insertedVerificationRequest) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "verification request not inserted",
+        });
+        return;
+    }
 
     // assign verification_token
-    // const token = insertedVerificationRequest.verification_token;
+    const token = insertedVerificationRequest.verification_token;
 
     // send email with confirmation link
     // await mailer(
