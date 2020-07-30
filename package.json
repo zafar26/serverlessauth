@@ -5,6 +5,9 @@
     "graphql-request": "^2.0.0",
     "nodemailer": "^6.4.10",
     "typescript": "^3.9.7",
-    "vercel": "^19.2.0"
+    "vercel": "^19.2.0",
+    "date-fns": "^2.14.0",
+    "date-fns-timezone": "^0.1.4",
+    "date-fns-tz": "^1.0.10"
   }
 }
