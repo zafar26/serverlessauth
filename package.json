@@ -1,4 +1,11 @@
 {
+  "name": "serverless-auth",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "@types/node": "^14.0.26",
     "cross-fetch": "^3.0.5",
@@ -9,5 +16,16 @@
     "date-fns": "^2.14.0",
     "date-fns-timezone": "^0.1.4",
     "date-fns-tz": "^1.0.10"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leapwind/serverless-auth.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leapwind/serverless-auth/issues"
+  },
+  "homepage": "https://github.com/leapwind/serverless-auth#readme",
+  "description": ""
 }
