@@ -1,5 +1,6 @@
 import { NowRequest, NowResponse } from "@vercel/node";
 import { getVerificationRequestByPollId } from "../../data/verificationRequest";
+import { zonedTimeToUtc, format, utcToZonedTime } from "date-fns-tz";
 
 import { isAfter, isBefore, parseISO } from 'date-fns'
 import { getSessionByUserId } from "../../data/session";
@@ -9,13 +10,11 @@ export default async function (req: NowRequest, res: NowResponse) {
     if (req.method === "POST") {
         if(req.body.poll_id && req.body.poll_id !== ""){
 
-            let dateTime = new Date()
+            let dateTime = zonedTimeToUtc(new Date(), "Asia/Kolkata")
             const data = await getVerificationRequestByPollId(req.body.poll_id);
-            // console.log(data, "VRDATA by Poll id")
             res.statusCode = 200
+
             let expiryDate = parseISO(data.expires_at)
-            // console.log(expiryDate, "EXPIRY DATE")
-            // console.log(dateTime, "DATETIME")
             if(data === "Empty"){
                 res.send({ message:"EMpty" })
             }
