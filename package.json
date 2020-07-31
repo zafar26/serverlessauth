@@ -2,9 +2,6 @@
     "dependencies": {
         "@types/node": "^14.0.26",
         "cross-fetch": "^3.0.5",
-        "date-fns": "^2.15.0",
-        "date-fns-timezone": "^0.1.4",
-        "date-fns-tz": "^1.0.10",
         "dayjs": "^1.8.31",
         "graphql-request": "^2.0.0",
         "jose": "^1.27.2",
