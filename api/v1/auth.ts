@@ -5,8 +5,6 @@ import {
     getVerificationRequestByUserId,
     insertOneVerificationRequest,
 } from "../../data/verificationRequest";
-import { isBefore, addMinutes, parseISO } from "date-fns";
-import { zonedTimeToUtc, format, utcToZonedTime } from "date-fns-tz";
 import {
     forbiddenRequest,
     authRequestHeaderContentType,
@@ -15,7 +13,14 @@ import {
     emailRegex,
     okRequest,
     authRequestType,
+    verificationRequestExpiryMinutes,
+    forProject,
 } from "../../constants";
+import {
+    addMinutesToZuluNow,
+    zuluNowIsBeforeZuluParse,
+    zuluNow,
+} from "../../utils/helper";
 
 export default async (req: NowRequest, res: NowResponse) => {
     // check the request method
@@ -75,50 +80,88 @@ export default async (req: NowRequest, res: NowResponse) => {
         return;
     }
 
+    // convert email to lowercase for avoiding case sensitive issues
     const emailLowered = `${email}`.toLowerCase();
-
-    // get user object from db
-    const user = await getUserByEmail(emailLowered);
 
     // declare userId
     let userId = null;
 
+    // get user object from db
+    const userOutput = await getUserByEmail(emailLowered);
+    let user = userOutput.data;
+    let userError = userOutput.error;
+
+    // check userError occurence
+    if (userError) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "error occured while fetching user data",
+        });
+        return;
+    }
+
     if (mode == validSigninMode) {
         // user existence in db
-        if (user) {
-            // check user is_enabled
-            if (!user.is_enabled) {
-                res.statusCode = forbiddenRequest;
-                res.send({
-                    message: "user is disabled for suspicious actions",
-                });
-                return;
-            }
-
-            // check completion of user signup verification
-            if (!user.email_verified) {
-                res.statusCode = forbiddenRequest;
-                res.send({
-                    message:
-                        "user cant signin, complete signup verification first",
-                });
-                return;
-            }
-
-            // assign userId
-            userId = user.id;
-        } else {
+        if (!user) {
             res.statusCode = forbiddenRequest;
             res.send({
                 message: "user not found, send request for signup first",
             });
             return;
         }
+
+        // check user is_enabled
+        if (!user.is_enabled) {
+            res.statusCode = forbiddenRequest;
+            res.send({
+                message: "user is disabled for suspicious actions",
+            });
+            return;
+        }
+
+        // check completion of user signup verification
+        if (!user.email_verified) {
+            res.statusCode = forbiddenRequest;
+            res.send({
+                message: "user cant signin, complete signup verification first",
+            });
+            return;
+        }
+
+        // assign userId
+        userId = user.id;
     }
 
     if (mode == validSignupMode) {
         // check user existence in db
-        if (user) {
+        if (!user) {
+            // insert user with just email and remaining with default data
+            const insertedUserOutput = await insertOneUser({
+                email: emailLowered,
+            });
+            let insertedUser = insertedUserOutput.data;
+            let insertedUserError = insertedUserOutput.error;
+
+            if (insertedUserError) {
+                res.statusCode = forbiddenRequest;
+                res.send({
+                    message: "error occured while inserting user data",
+                });
+                return;
+            }
+
+            // check insertion of user
+            if (!insertedUser) {
+                res.statusCode = forbiddenRequest;
+                res.send({
+                    message: "user not inserted",
+                });
+                return;
+            }
+
+            // assign userId
+            userId = insertedUser.id;
+        } else {
             // check user is_enabled
             if (!user.is_enabled) {
                 res.statusCode = forbiddenRequest;
@@ -139,57 +182,63 @@ export default async (req: NowRequest, res: NowResponse) => {
 
             // assign userId
             userId = user.id;
-        } else {
-            // insert user with just email and remaining with default data
-            const insertedUser = await insertOneUser({
-                email: emailLowered,
-            });
-
-            // check insertion of user
-            if (!insertedUser) {
-                res.statusCode = forbiddenRequest;
-                res.send({
-                    message: "user not inserted",
-                });
-                return;
-            }
-
-            // assign userId
-            userId = insertedUser.id;
         }
     }
 
     // get verification_request object from db
-    const verificationRequest = await getVerificationRequestByUserId(userId);
+    const verificationRequestOutput = await getVerificationRequestByUserId(
+        userId
+    );
+    let verificationRequest = verificationRequestOutput.data;
+    let verificationRequestError = verificationRequestOutput.error;
+
+    if (verificationRequestError) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "error occured while fetching previous request data",
+        });
+        return;
+    }
 
     // check verification_request existence in db
     if (verificationRequest) {
-        // check previous request verification
-        if (!verificationRequest.is_verified) {
+        console.log(verificationRequest);
+        console.log(zuluNow());
+        // check previous request expiration
+        if (zuluNowIsBeforeZuluParse(verificationRequest.expires_at)) {
             res.statusCode = forbiddenRequest;
             res.send({
-                message: "unverified request exists",
+                message: "unexpired request exists",
             });
             return;
         }
-
-        // check previous request expiration
-        // this block is buggy, need to fix this
-        // if (isBefore(new Date(), verificationRequest.expires_at))) {
-        //     res.statusCode = forbiddenRequest;
-        //     res.send({
-        //         message: "unexpired request exists",
-        //     });
-        //     return;
-        // }
     }
 
+    // set verification request expire_at
+    const verificationRequestExpiresAt = addMinutesToZuluNow(
+        verificationRequestExpiryMinutes
+    );
+
     // insert verification_request with user_id, mode, expires_at and remaining with default data
-    const insertedVerificationRequest = await insertOneVerificationRequest({
-        user_id: userId,
-        mode: mode,
-        expires_at: zonedTimeToUtc(addMinutes(new Date(), 5), "Asia/Kolkata"),
-    });
+    const insertedVerificationRequestOutput = await insertOneVerificationRequest(
+        {
+            user_id: userId,
+            mode: mode,
+            expires_at: verificationRequestExpiresAt,
+        }
+    );
+
+    let insertedVerificationRequest = insertedVerificationRequestOutput.data;
+    let insertedVerificationRequestError =
+        insertedVerificationRequestOutput.error;
+
+    if (insertedVerificationRequestError) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "error occured while inserting verification request",
+        });
+        return;
+    }
 
     // check insertion of verification request
     if (!insertedVerificationRequest) {
@@ -204,12 +253,12 @@ export default async (req: NowRequest, res: NowResponse) => {
     const token = insertedVerificationRequest.verification_token;
 
     // send email with confirmation link
-    // await mailer(
-    //     email,
-    //     mode,
-    //     `http://localhost:3000/api/v1/confirm?email=${email}&mode=${mode}&token=${token}`,
-    //     "demoauth"
-    // );
+    await mailer(
+        email,
+        mode,
+        `${process.env.site}/api/v1/confirm?email=${email}&mode=${mode}&token=${token}`,
+        forProject
+    );
 
     res.statusCode = okRequest;
     res.send({

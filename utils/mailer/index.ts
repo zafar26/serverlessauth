@@ -22,7 +22,7 @@ export const mailer = async (email, mode, confirmationLink, projectName) => {
 
     // send mail with defined transport object
     let info = await transporter.sendMail({
-        from: '"demoauth 👻" <noreply@demoauth.com>', // sender address
+        from: `"${projectName} 👻" <noreply@demoauth.com>'`, // sender address
         to: email, // list of receivers
         subject: `confirm ${mode} request for ${projectName}`, // Subject line
         text: `Hello ${email}`, // plain text body

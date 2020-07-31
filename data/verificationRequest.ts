@@ -16,31 +16,28 @@ export const getVerificationRequestByUserId: any = async (userId: number) => {
     }`;
 
     const variables = { userId: userId };
-    let output = null;
+    let output = { data: null, error: null };
     await fetcher(query, variables)
         .then((data) => {
             if (
                 data.verification_request &&
                 data.verification_request.length > 0
             ) {
-                output = data.verification_request[0];
+                output.data = data.verification_request[0];
             }
         })
         .catch((error) => {
-            console.log(
-                "getVerificationRequestByUserId",
-                error.response.errors
-            );
+            console.log("getVerificationRequestByUserId", error);
+            output.error = error;
         });
     return output;
 };
 
 export const getVerificationRequestByToken: any = async (
-    token: string | string[],
-    mode: string | string[]
+    token: string | string[]
 ) => {
-    const query = `query ($token: uuid!, $mode :String!) {
-        verification_request(where: {verification_token: {_eq: $token}, _and: {mode: {_eq: $mode}}}, order_by: {created_at: desc}, limit: 1) {
+    const query = `query ($token: uuid!) {
+        verification_request(where: {verification_token: {_eq: $token}}, order_by: {created_at: desc}, limit: 1) {
             id
             verification_token
             mode
@@ -64,24 +61,25 @@ export const getVerificationRequestByToken: any = async (
         }
     }`;
 
-    const variables = { token: token, mode: mode };
-    let output = null;
+    const variables = { token: token };
+    let output = { data: null, error: null };
     await fetcher(query, variables)
         .then((data) => {
             if (
                 data.verification_request &&
                 data.verification_request.length > 0
             ) {
-                output = data.verification_request[0];
+                output.data = data.verification_request[0];
             }
         })
         .catch((error) => {
-            console.log("getVerificationRequestByToken", error.response.errors);
+            console.log("getVerificationRequestByToken", error);
+            output.error = error;
         });
     return output;
 };
 
-export const insertOneVerificationRequest: any = async (obj) => {
+export const insertOneVerificationRequest: any = async (insertObj) => {
     const mutation = `mutation ($oneVerificationRequest : verification_request_insert_input!) {
         insert_verification_request_one(object: $oneVerificationRequest) {
                 id
@@ -97,17 +95,65 @@ export const insertOneVerificationRequest: any = async (obj) => {
         }`;
 
     const variables = {
-        oneVerificationRequest: obj,
+        oneVerificationRequest: insertObj,
     };
-    let output = null;
+    let output = { data: null, error: null };
     await mutator(mutation, variables)
         .then((data) => {
             if (data.insert_verification_request_one) {
-                output = data.insert_verification_request_one;
+                output.data = data.insert_verification_request_one;
             }
         })
         .catch((error) => {
-            console.log("insertOneVerificationRequest", error.response.errors);
+            console.log("insertOneVerificationRequest", error);
+            output.error = error;
+        });
+    return output;
+};
+
+export const updateVerificationRequestByPk: any = async (
+    verificationId,
+    setObj
+) => {
+    const mutation = `mutation($verificationId : bigint!, $setVerificationRequest : verification_request_set_input!) {
+        update_verification_request_by_pk(pk_columns: {id: $verificationId}, _set: $setVerificationRequest) {
+            id
+            poll_id
+            verification_token
+            user_id
+            user {
+                id
+                email
+                name
+                image
+                email_verified
+                is_enabled
+                role
+                created_at
+                updated_at
+            }
+            expires_at
+            mode
+            is_verified
+            created_at
+            updated_at
+        }
+    }`;
+
+    const variables = {
+        verificationId: verificationId,
+        setVerificationRequest: setObj,
+    };
+    let output = { data: null, error: null };
+    await mutator(mutation, variables)
+        .then((data) => {
+            if (data.update_verification_request_by_pk) {
+                output.data = data.update_verification_request_by_pk;
+            }
+        })
+        .catch((error) => {
+            console.log("updateVerificationRequestByPk", error);
+            output.error = error;
         });
     return output;
 };
