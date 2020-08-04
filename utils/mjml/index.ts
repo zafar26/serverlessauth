@@ -3,7 +3,7 @@ import mjml2html from 'mjml'
 /*
   Compile an mjml string
 */
-export const confirmationHtml =(username,useremail,mode, link) => {
+export const confirmationMjml =(username,useremail,mode, link) => {
 
     let verification = "Email Verification"
     let name = username ? username : "ZAFAR"

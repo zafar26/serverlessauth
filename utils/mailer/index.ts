@@ -1,7 +1,7 @@
 "use strict";
 
 import nodemailer from "nodemailer";
-import { confirmationHtml } from "../mjml";
+import { confirmationMjml } from "../mjml";
 
 // async..await is not allowed in global scope, must use a wrapper
 export const mailer = async (email, mode, confirmationLink, projectName) => {
@@ -26,7 +26,7 @@ export const mailer = async (email, mode, confirmationLink, projectName) => {
         to: email, // list of receivers
         subject: `confirm ${mode} request for ${projectName}`, // Subject line
         text: `Hello ${email}`, // plain text body
-        html: confirmationHtml(projectName,email,mode, confirmationLink), // html body
+        html: confirmationMjml(projectName,email,mode, confirmationLink), // html body
     });
 
     console.log("Message sent: %s", info.messageId);
