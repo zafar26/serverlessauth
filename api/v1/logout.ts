@@ -1,11 +1,11 @@
 import { NowRequest, NowResponse } from "@vercel/node";
 import { userLogOut } from "../../data/session";
-import { confirmRequestType, forbiddenRequest, serverError, clientError, okRequest } from '../../constants'
+import { forbiddenRequest, serverError, clientError, okRequest, authRequestHeaderContentType, authRequestType } from '../../constants'
 import { zuluNow } from "../../utils/helper";
 
 export default async function (req: NowRequest, res: NowResponse) {
 
-    if(req.method != confirmRequestType){
+    if(req.method != authRequestType){
         res.statusCode = forbiddenRequest
         res.send({
             message: "invalid request method",
@@ -13,6 +13,15 @@ export default async function (req: NowRequest, res: NowResponse) {
         console.log("/confirm", "invalid request method");
         return;
     }
+
+    if (req.headers["content-type"] != authRequestHeaderContentType) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "invalid request header content-type",
+        });
+        return;
+    }
+
     if(!req.headers.token){
         res.statusCode = forbiddenRequest
         res.send({
@@ -20,6 +29,7 @@ export default async function (req: NowRequest, res: NowResponse) {
         });
         return;
     }
+    
     let dateTime = zuluNow()
     let obj = { expires_at: dateTime, updated_at: dateTime }
     const {data, error} = await userLogOut(req.body.user_id, req.headers.token, obj )

@@ -2,17 +2,25 @@ import { NowRequest, NowResponse } from "@vercel/node";
 import { getVerificationRequestByPollId } from "../../data/verificationRequest";
 
 import { getSessionByUserId } from "../../data/session";
-import { confirmRequestType, forbiddenRequest, serverError, okRequest } from "../../constants";
+import { forbiddenRequest, serverError, okRequest, authRequestType, authRequestHeaderContentType } from "../../constants";
 import { zuluNowIsBeforeZuluParse, zuluNowIsAfterZuluParse } from "../../utils/helper";
 
 export default async function (req: NowRequest, res: NowResponse) {
 
-    if(req.method != confirmRequestType){
+    if(req.method != authRequestType){
         res.statusCode = forbiddenRequest
         res.send({
             message: "invalid request method",
         });
         console.log("/confirm", "invalid request method");
+        return;
+    }
+
+    if (req.headers["content-type"] != authRequestHeaderContentType) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "invalid request header content-type",
+        });
         return;
     }
 
