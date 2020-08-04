@@ -24,6 +24,15 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
+    // check request body data
+    if (!req.body) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "got empty request body",
+        });
+        return;
+    }
+
     if (!req.body.poll_id) {
         res.statusCode = forbiddenRequest
         res.send({

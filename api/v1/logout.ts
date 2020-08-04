@@ -30,6 +30,15 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
+    // check request body data
+    if (!req.body) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "got empty request body",
+        });
+        return;
+    }
+
     let dateTime = zuluNow()
     let obj = { expires_at: dateTime, updated_at: dateTime }
     const { data, error } = await userLogOut(req.body.user_id, req.headers.token, obj)
