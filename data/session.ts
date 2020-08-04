@@ -1,6 +1,6 @@
-import { fetcher } from "../utils/graphql";
+import { mutator, fetcher } from "../utils/graphql";
 
-export const getSessionByUserId = async (userId: number) => {
+export const getSessionByUserId = async (userId) => {
   const query = `query ($user_id:bigint!){
     session(where: {user_id: {_eq: $user_id}}) {
       id
@@ -11,12 +11,15 @@ export const getSessionByUserId = async (userId: number) => {
     }
   }  
   `;
-
   const variables = { user_id: userId };
-  const data = await fetcher(query, variables)
-  .then((data)=>data.session[0])
-  .catch((err)=>console.log(err.response.errors,"getSessionByUserId"))
-  return data;
+  let output = { data: null, error: null };
+  await fetcher(query, variables)
+  .then((data)=>output.data = data.session[0])
+  .catch((err)=>{
+    console.log(err.response.errors,"getSessionByUserId")
+    output.error = err
+  })
+  return output;
 };
 
 
@@ -37,17 +40,48 @@ export const userLogOut = async (userId, token, obj) => {
     }
   }  
   `;
-
   const variables = {  userId, token:token, setSession:obj};
-  const data = await fetcher(query, variables)
+  let output = { data: null, error: null };
+
+  await fetcher(query, variables)
   .then((data)=>{
     if(data.update_session){
-      return data.update_session.affected_rows > 0 ? "succes" :null
-    }return null
+      output.data =  data.update_session.affected_rows > 0 ? "succes" :null
+    }
   })
-  .catch((err)=>console.log(err,"updateSessionByToken"))
-  return data;
+  .catch((err)=>{
+    console.log(err,"updateSessionByToken")
+    output.error = err;
+  })
+  return output;
 };
 
 
 
+
+export const insertOneSession: any = async (insertObj) => {
+    const mutation = `mutation ($oneSession : session_insert_input!) {
+        insert_session_one(object :$oneSession) {
+            id
+            token
+            user_id
+            expires_at
+            created_at
+            updated_at
+        }
+    }`;
+
+    const variables = { oneSession: insertObj };
+    let output = { data: null, error: null };
+    await mutator(mutation, variables)
+        .then((data) => {
+            if (data.insert_session_one) {
+                output.data = data.insert_session_one;
+            }
+        })
+        .catch((error) => {
+            console.log("insertOneSession", error);
+            output.error = error;
+        });
+    return output;
+};

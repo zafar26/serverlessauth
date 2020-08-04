@@ -1,59 +1,71 @@
 import { NowRequest, NowResponse } from "@vercel/node";
 import { getVerificationRequestByPollId } from "../../data/verificationRequest";
-import { zonedTimeToUtc, format, utcToZonedTime } from "date-fns-tz";
 
-import { isAfter, isBefore, parseISO } from 'date-fns'
 import { getSessionByUserId } from "../../data/session";
+import { confirmRequestType, forbiddenRequest, serverError, okRequest } from "../../constants";
+import { zuluNowIsBeforeZuluParse, zuluNowIsAfterZuluParse } from "../../utils/helper";
 
 export default async function (req: NowRequest, res: NowResponse) {
 
-    if (req.method === "POST") {
-        if(req.body.poll_id && req.body.poll_id !== ""){
-
-            let dateTime = zonedTimeToUtc(new Date(), "Asia/Kolkata")
-            const data = await getVerificationRequestByPollId(req.body.poll_id);
-            res.statusCode = 200
-
-            let expiryDate = parseISO(data.expires_at)
-            if(data === "Empty"){
-                res.send({ message:"EMpty" })
-            }
-            else if(data ){
-                if(isBefore(expiryDate , dateTime)){
-                    res.send({
-                        verification_status:"Expired",
-                        token:null
-                    })    
-                }
-                if(data.is_verified === false && isAfter(expiryDate , dateTime) ){
-                    res.send({
-                        verification_status:"Pending",
-                        token:null
-                    }) 
-                }
-                if(data.is_verified && isAfter(expiryDate , dateTime) ){
-                    let session = await getSessionByUserId(data.user.id)
-                    if(session){
-                        res.send({
-                            verification_status:"Verified",
-                            token:session.token
-                        }) 
-                    }
-                    else { res.send({ message: "No Session for this User" }) }
-                }
-            }else{
-                res.statusCode = 502
-                res.send({ message:"No Data From Api" })
-            }
-            return 
-        }
-        res.statusCode = 400
-        res.send({ message: "Missing Poll_id" });
+    if(req.method != confirmRequestType){
+        res.statusCode = forbiddenRequest
+        res.send({
+            message: "invalid request method",
+        });
+        console.log("/confirm", "invalid request method");
         return;
     }
-    if(req.method === "GET"){
-        res.statusCode = 200
-        res.send({ message: "GET method" });
+
+    if(!req.body.poll_id){
+        res.statusCode = forbiddenRequest
+        res.send({
+          message: "Please Insert Poll Id",
+        });
+        return;
+    }
+
+    const { data, error } = await getVerificationRequestByPollId(req.body.poll_id);
+    
+    if(error || !data ){
+        res.statusCode = serverError
+        res.send({ message:"No Data From Api" })
+        return
+    }
+    
+    if(zuluNowIsBeforeZuluParse(data.expires_at)){
+        res.send({
+            verification_status:"Expired",
+            token:null
+        })    
+        return
+    }
+
+    if(data.is_verified === false && zuluNowIsAfterZuluParse(data.expires_at) ){
+        res.send({
+            verification_status:"Pending",
+            token:null
+        }) 
+        return
+    }
+
+    if(data.is_verified && zuluNowIsAfterZuluParse(data.expires_at) ){
+        const session = await getSessionByUserId(data.user.id)
+
+        if(session.error){
+            res.send({ message: "Error while Creating Session"})
+            return
+        }
+
+        if(!session.data){
+            res.send({ message: "No Session for this User" })
+            return
+        }    
+
+        res.statusCode = okRequest
+        res.send({
+            verification_status:"Verified",
+            token:session.data.token
+        }) 
         return
     }
 }
