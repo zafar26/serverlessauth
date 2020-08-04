@@ -14,8 +14,8 @@ export const getVerificationRequestByUserId: any = async (userId: number) => {
             created_at
         }
     }`;
-
     const variables = { userId: userId };
+
     let output = { data: null, error: null };
     await fetcher(query, variables)
         .then((data) => {
@@ -60,8 +60,8 @@ export const getVerificationRequestByToken: any = async (
             updated_at
         }
     }`;
-
     const variables = { token: token };
+
     let output = { data: null, error: null };
     await fetcher(query, variables)
         .then((data) => {
@@ -79,13 +79,11 @@ export const getVerificationRequestByToken: any = async (
     return output;
 };
 
-
-
 export const getVerificationRequestByPollId: any = async (
-    pollId: string | string[],
+    pollId: string | string[]
 ) => {
     const query = `query ($pollId: uuid!) {
-        verification_request(where: {poll_id: {_eq: $pollId}}) {
+        verification_request(where: {poll_id: {_eq: $pollId}}, order_by: {created_at: desc}, limit: 1) {
             id
             verification_token
             mode
@@ -108,8 +106,8 @@ export const getVerificationRequestByPollId: any = async (
             updated_at
         }
     }`;
-
     const variables = { pollId: pollId };
+
     let output = { data: null, error: null };
     await fetcher(query, variables)
         .then((data) => {
@@ -121,14 +119,11 @@ export const getVerificationRequestByPollId: any = async (
             }
         })
         .catch((error) => {
-            console.log("getVerificationRequestByPollId", error.response.errors);
-            output.error = error
+            console.log("getVerificationRequestByPollId", error);
+            output.error = error;
         });
     return output;
 };
-
-
-
 
 export const insertOneVerificationRequest: any = async (insertObj) => {
     const mutation = `mutation ($oneVerificationRequest : verification_request_insert_input!) {
@@ -144,10 +139,10 @@ export const insertOneVerificationRequest: any = async (insertObj) => {
                 created_at
             }
         }`;
-
     const variables = {
         oneVerificationRequest: insertObj,
     };
+
     let output = { data: null, error: null };
     await mutator(mutation, variables)
         .then((data) => {
@@ -190,11 +185,11 @@ export const updateVerificationRequestByPk: any = async (
             updated_at
         }
     }`;
-
     const variables = {
         verificationId: verificationId,
         setVerificationRequest: setObj,
     };
+
     let output = { data: null, error: null };
     await mutator(mutation, variables)
         .then((data) => {

@@ -1,24 +1,28 @@
 //  Validation
 export const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-// Request Method Type
+// Request Method Types
 export const authRequestType = "POST";
 export const confirmRequestType = "GET";
+export const signoutRequestType = "POST";
+export const verifyRequestType = "GET";
 
 // Headers
 export const authRequestHeaderContentType = "application/json";
+export const verifyRequestHeaderContentType = "application/json";
+export const signoutRequestHeaderContentType = "application/json";
 
 // Modes
 export const validSigninMode = "signin";
 export const validSignupMode = "signup";
 
-// Error Code
+// Status Codes
 export const forbiddenRequest = 403;
 export const serverError = 502;
 export const clientError = 400;
 export const okRequest = 200;
 
-// M
+// Miscellaneous
 export const forProject = "demoauth";
 
 // Time Constants

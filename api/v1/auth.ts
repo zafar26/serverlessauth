@@ -15,6 +15,7 @@ import {
     authRequestType,
     verificationRequestExpiryMinutes,
     forProject,
+    serverError,
 } from "../../constants";
 import {
     addMinutesToZuluNow,
@@ -159,8 +160,12 @@ export default async (req: NowRequest, res: NowResponse) => {
                 return;
             }
 
+            console.log("got here");
+
             // assign userId
             userId = insertedUser.id;
+
+            console.log(userId);
         } else {
             // check user is_enabled
             if (!user.is_enabled) {
@@ -253,12 +258,20 @@ export default async (req: NowRequest, res: NowResponse) => {
     const token = insertedVerificationRequest.verification_token;
 
     // send email with confirmation link
-    await mailer(
+    const mailerOutput = await mailer(
         email,
         mode,
         `${process.env.site}/api/v1/confirm?email=${email}&mode=${mode}&token=${token}`,
         forProject
     );
+
+    if (mailerOutput.error) {
+        res.statusCode = serverError;
+        res.send({
+            message: "Error Occured while sending email",
+        });
+        return;
+    }
 
     res.statusCode = okRequest;
     res.send({

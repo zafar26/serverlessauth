@@ -2,21 +2,28 @@ import { NowRequest, NowResponse } from "@vercel/node";
 import { getVerificationRequestByPollId } from "../../data/verificationRequest";
 
 import { getSessionByUserId } from "../../data/session";
-import { forbiddenRequest, serverError, okRequest, authRequestType, authRequestHeaderContentType } from "../../constants";
-import { zuluNowIsBeforeZuluParse, zuluNowIsAfterZuluParse } from "../../utils/helper";
+import {
+    forbiddenRequest,
+    serverError,
+    okRequest,
+    verifyRequestType,
+    verifyRequestHeaderContentType,
+} from "../../constants";
+import {
+    zuluNowIsBeforeZuluParse,
+    zuluNowIsAfterZuluParse,
+} from "../../utils/helper";
 
 export default async function (req: NowRequest, res: NowResponse) {
-
-    if (req.method != authRequestType) {
-        res.statusCode = forbiddenRequest
+    if (req.method != verifyRequestType) {
+        res.statusCode = forbiddenRequest;
         res.send({
             message: "invalid request method",
         });
-        console.log("/confirm", "invalid request method");
         return;
     }
 
-    if (req.headers["content-type"] != authRequestHeaderContentType) {
+    if (req.headers["content-type"] != verifyRequestHeaderContentType) {
         res.statusCode = forbiddenRequest;
         res.send({
             message: "invalid request header content-type",
@@ -33,56 +40,70 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
-    if (!req.body.poll_id) {
-        res.statusCode = forbiddenRequest
+    if (!req.body.pollId) {
+        res.statusCode = forbiddenRequest;
         res.send({
-            message: "Please Insert Poll Id",
+            message: "required data is missing in request body",
         });
         return;
     }
 
-    const { data, error } = await getVerificationRequestByPollId(req.body.poll_id);
+    const { pollId } = req.body;
 
-    if (error || !data) {
-        res.statusCode = serverError
-        res.send({ message: "No Data From Api" })
-        return
-    }
+    const { data, error } = await getVerificationRequestByPollId(pollId);
 
-    if (zuluNowIsBeforeZuluParse(data.expires_at)) {
+    if (error) {
+        res.statusCode = serverError;
         res.send({
-            verification_status: "Expired",
-            token: null
-        })
-        return
+            message: "Error occured while fetching verifiction request",
+        });
+        return;
     }
 
-    if (!data.is_verified && zuluNowIsAfterZuluParse(data.expires_at)) {
-        res.send({
-            verification_status: "Pending",
-            token: null
-        })
-        return
+    if (!data) {
+        res.statusCode = forbiddenRequest;
+        res.send({ message: "verification request not found" });
+        return;
     }
 
-    if (data.is_verified && zuluNowIsAfterZuluParse(data.expires_at)) {
-        const session = await getSessionByUserId(data.user.id)
-
-        if (session.error) {
-            res.send({ message: "Error while Creating Session" })
-            return
+    if (!data.is_verified) {
+        if (zuluNowIsAfterZuluParse(data.expires_at)) {
+            res.statusCode = okRequest;
+            res.send({
+                message: "success",
+                verification_status: "Expired",
+                token: null,
+            });
+            return;
+        } else {
+            res.statusCode = okRequest;
+            res.send({
+                message: "success",
+                verification_status: "Pending",
+                token: null,
+            });
+            return;
         }
-
-        if (!session.data) {
-            res.send({ message: "No Session for this User" })
-            return
-        }
-
-        res.statusCode = okRequest
-        res.send({
-            verification_status: "Verified",
-            token: session.data.token
-        })
-        return
     }
+    const session = await getSessionByUserId(data.user_id);
+
+    if (session.error) {
+        res.statusCode = serverError;
+        res.send({ message: "Error occured while inserting session" });
+        return;
+    }
+
+    if (!session.data) {
+        res.statusCode = forbiddenRequest;
+        res.send({ message: "no session found" });
+        return;
+    }
+
+    res.statusCode = okRequest;
+    res.send({
+        message: "success",
+        verification_status: "Verified",
+        token: session.data.token,
+    });
+    return;
 }

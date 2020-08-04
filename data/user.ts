@@ -12,8 +12,8 @@ export const getUserByEmail: any = async (email: string) => {
             email_verified
         }
     }`;
-
     const variables = { email: email };
+
     let output = { data: null, error: null };
     await fetcher(query, variables)
         .then((data) => {
@@ -42,19 +42,20 @@ export const insertOneUser: any = async (insertObj) => {
             updated_at
         }
     }`;
-
     const variables = { oneUser: insertObj };
+
     let output = { data: null, error: null };
     await mutator(mutation, variables)
         .then((data) => {
             if (data.insert_user_one) {
-                output.data = data;
+                output.data = data.insert_user_one;
             }
         })
         .catch((error) => {
             console.log("insertOneUser", error.response.errors);
             output.error = error;
         });
+    console.log("insert one user", output);
     return output;
 };
 
@@ -72,11 +73,11 @@ export const updateUserByPk: any = async (userId, setObj) => {
             updated_at
         }
     }`;
-
     const variables = {
         userId: userId,
         setUser: setObj,
     };
+
     let output = { data: null, error: null };
     await mutator(mutation, variables)
         .then((data) => {
