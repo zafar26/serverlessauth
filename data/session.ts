@@ -14,11 +14,11 @@ export const getSessionByUserId = async (userId) => {
   const variables = { user_id: userId };
   let output = { data: null, error: null };
   await fetcher(query, variables)
-  .then((data)=>output.data = data.session[0])
-  .catch((err)=>{
-    console.log(err.response.errors,"getSessionByUserId")
-    output.error = err
-  })
+    .then((data) => output.data = data.session[0])
+    .catch((err) => {
+      console.log(err.response.errors, "getSessionByUserId")
+      output.error = err
+    })
   return output;
 };
 
@@ -40,19 +40,19 @@ export const userLogOut = async (userId, token, obj) => {
     }
   }  
   `;
-  const variables = {  userId, token:token, setSession:obj};
+  const variables = { userId, token: token, setSession: obj };
   let output = { data: null, error: null };
 
   await fetcher(query, variables)
-  .then((data)=>{
-    if(data.update_session){
-      output.data =  data.update_session.affected_rows > 0 ? "succes" :null
-    }
-  })
-  .catch((err)=>{
-    console.log(err,"updateSessionByToken")
-    output.error = err;
-  })
+    .then((data) => {
+      if (data.update_session) {
+        output.data = data.update_session.affected_rows > 0 ? "succes" : null
+      }
+    })
+    .catch((err) => {
+      console.log(err, "updateSessionByToken")
+      output.error = err;
+    })
   return output;
 };
 
@@ -60,7 +60,7 @@ export const userLogOut = async (userId, token, obj) => {
 
 
 export const insertOneSession: any = async (insertObj) => {
-    const mutation = `mutation ($oneSession : session_insert_input!) {
+  const mutation = `mutation ($oneSession : session_insert_input!) {
         insert_session_one(object :$oneSession) {
             id
             token
@@ -71,17 +71,17 @@ export const insertOneSession: any = async (insertObj) => {
         }
     }`;
 
-    const variables = { oneSession: insertObj };
-    let output = { data: null, error: null };
-    await mutator(mutation, variables)
-        .then((data) => {
-            if (data.insert_session_one) {
-                output.data = data.insert_session_one;
-            }
-        })
-        .catch((error) => {
-            console.log("insertOneSession", error);
-            output.error = error;
-        });
-    return output;
+  const variables = { oneSession: insertObj };
+  let output = { data: null, error: null };
+  await mutator(mutation, variables)
+    .then((data) => {
+      if (data.insert_session_one) {
+        output.data = data.insert_session_one;
+      }
+    })
+    .catch((error) => {
+      console.log("insertOneSession", error);
+      output.error = error;
+    });
+  return output;
 };

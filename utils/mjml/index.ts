@@ -3,13 +3,13 @@ import mjml2html from 'mjml'
 /*
   Compile an mjml string
 */
-export const confirmationMjml =(username,useremail,mode, link) => {
+export const confirmationMjml = (username, useremail, mode, link) => {
 
     let verification = "Email Verification"
     let name = username ? username : "ZAFAR"
     let email = useremail ? useremail : "qutubuddinzafar2616118@gmail.com"
     let confirmationLink = link ? link : "https://something.com"
-    let logo="https://image.shutterstock.com/image-vector/lp-letter-logo-260nw-1068631178.jpg"
+    let logo = "https://image.shutterstock.com/image-vector/lp-letter-logo-260nw-1068631178.jpg"
     let location = "45.117.66.26 at 12:38 UTC in Karimnagar, India"
 
 

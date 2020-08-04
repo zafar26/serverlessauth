@@ -60,23 +60,23 @@ export const getVerificationRequestByToken: any = async (
             updated_at
         }
     }`;
-    
+
     const variables = { token: token };
     let output = { data: null, error: null };
     await fetcher(query, variables)
-    .then((data) => {
-        if (
-            data.verification_request &&
-            data.verification_request.length > 0
-        ) {
-            output.data = data.verification_request[0];
-        }
-    })
-    .catch((error) => {
-        console.log("getVerificationRequestByToken", error);
-        output.error = error;
-    });
-return output;
+        .then((data) => {
+            if (
+                data.verification_request &&
+                data.verification_request.length > 0
+            ) {
+                output.data = data.verification_request[0];
+            }
+        })
+        .catch((error) => {
+            console.log("getVerificationRequestByToken", error);
+            output.error = error;
+        });
+    return output;
 };
 
 
@@ -126,9 +126,9 @@ export const getVerificationRequestByPollId: any = async (
         });
     return output;
 };
-  
 
-              
+
+
 
 export const insertOneVerificationRequest: any = async (insertObj) => {
     const mutation = `mutation ($oneVerificationRequest : verification_request_insert_input!) {

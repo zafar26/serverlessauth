@@ -26,7 +26,7 @@ export const mailer = async (email, mode, confirmationLink, projectName) => {
         to: email, // list of receivers
         subject: `confirm ${mode} request for ${projectName}`, // Subject line
         text: `Hello ${email}`, // plain text body
-        html: confirmationMjml(projectName,email,mode, confirmationLink), // html body
+        html: confirmationMjml(projectName, email, mode, confirmationLink), // html body
     });
 
     console.log("Message sent: %s", info.messageId);
