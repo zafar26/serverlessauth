@@ -63,32 +63,33 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
-    if (!data.is_verified) {
-        if (zuluNowIsAfterZuluParse(data.expires_at)) {
-            res.statusCode = okRequest;
-            res.send({
-                message: "success",
-                verification_status: "Expired",
-                token: null,
-            });
-            return;
-        } else {
-            res.statusCode = okRequest;
-            res.send({
-                message: "success",
-                verification_status: "Pending",
-                token: null,
-            });
-            return;
-        }
+    if (zuluNowIsAfterZuluParse(data.expires_at)) {
+        res.statusCode = okRequest;
+        res.send({
+            message: "success",
+            verification_status: "Expired",
+            token: null,
+        });
+        return;
     }
+
+    if (!data.is_verified) {
+        res.statusCode = okRequest;
+        res.send({
+            message: "success",
+            verification_status: "Pending",
+            token: null,
+        });
+        return;
+    }
+
     const sessionOutput = await getSessionByRequestId(data.id);
     let session = sessionOutput.data;
     let sessionError = sessionOutput.error;
 
     if (sessionError) {
         res.statusCode = serverError;
-        res.send({ message: "Error occured while inserting session" });
+        res.send({ message: "Error occured while fetching session" });
         return;
     }
 

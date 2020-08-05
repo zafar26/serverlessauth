@@ -191,7 +191,6 @@ export default async (req: NowRequest, res: NowResponse) => {
         verificationId,
         {
             updated_at: currentTime,
-            expires_at: currentTime,
             is_verified: true,
         }
     );
