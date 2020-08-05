@@ -108,7 +108,7 @@ export default async function (req: NowRequest, res: NowResponse) {
     res.send({
         message: "success",
         verification_status: "Verified",
-        token: session,
+        token: session.token,
     });
     return;
 }
