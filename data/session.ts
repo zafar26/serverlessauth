@@ -1,8 +1,8 @@
 import { mutator, fetcher } from "../utils/graphql";
 
-export const getSessionByUserId = async (userId) => {
-    const query = `query ($user_id:bigint!){
-        session(where: {user_id: {_eq: $user_id}}, order_by: {created_at: desc}, limit: 1) {
+export const getSessionByRequestId = async (requestId) => {
+    const query = `query ($requestId: bigint!){
+        session(where: {request_id: {_eq: $requestId}}, order_by: {created_at: desc}, limit: 1) {
             id
             token
             created_at
@@ -10,7 +10,7 @@ export const getSessionByUserId = async (userId) => {
             user_id
         }
     }`;
-    const variables = { user_id: userId };
+    const variables = { requestId: requestId };
 
     let output = { data: null, error: null };
     await fetcher(query, variables)
@@ -20,7 +20,7 @@ export const getSessionByUserId = async (userId) => {
             }
         })
         .catch((error) => {
-            console.log("getSessionByUserId", error);
+            console.log("getSessionByRequestId", error);
             output.error = error;
         });
     return output;

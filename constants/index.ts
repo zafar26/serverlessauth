@@ -5,7 +5,7 @@ export const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)
 export const authRequestType = "POST";
 export const confirmRequestType = "GET";
 export const signoutRequestType = "POST";
-export const verifyRequestType = "GET";
+export const verifyRequestType = "POST";
 
 // Headers
 export const authRequestHeaderContentType = "application/json";

@@ -55,7 +55,6 @@ export const insertOneUser: any = async (insertObj) => {
             console.log("insertOneUser", error.response.errors);
             output.error = error;
         });
-    console.log("insert one user", output);
     return output;
 };
 

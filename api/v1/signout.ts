@@ -19,6 +19,37 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
+    if (!req.headers["authorization"]) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "invalid authorization",
+        });
+        return;
+    }
+
+    let authorization = req.headers["authorization"];
+
+    if (!authorization.includes(" ")) {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "invalid authorization",
+        });
+        return;
+    }
+
+    let authorizationSplits = authorization.split(" ");
+
+    let Bearer = authorizationSplits[0];
+    let token = authorizationSplits[1];
+    
+    if (Bearer != "Bearer") {
+        res.statusCode = forbiddenRequest;
+        res.send({
+            message: "invalid authorization",
+        });
+        return;
+    }
+
     if (req.headers["content-type"] != signoutRequestHeaderContentType) {
         res.statusCode = forbiddenRequest;
         res.send({
@@ -26,16 +57,6 @@ export default async function (req: NowRequest, res: NowResponse) {
         });
         return;
     }
-
-    if (!req.headers.token) {
-        res.statusCode = forbiddenRequest;
-        res.send({
-            message: "Please Provide Token",
-        });
-        return;
-    }
-
-    const token = req.headers.token;
 
     // check request body data
     if (!req.body) {
@@ -46,7 +67,7 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
-    if (!req.body.id) {
+    if (!req.body.userId) {
         res.statusCode = forbiddenRequest;
         res.send({
             message: "missing required data in request body",
@@ -54,13 +75,13 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
-    const { UserId } = req.body;
+    const { userId } = req.body;
 
     let currentTime = zuluNow();
 
     let obj = { expires_at: currentTime, updated_at: currentTime };
 
-    const { data, error } = await sessionSignout(UserId, token, obj);
+    const { data, error } = await sessionSignout(userId, token, obj);
 
     if (error) {
         res.statusCode = serverError;

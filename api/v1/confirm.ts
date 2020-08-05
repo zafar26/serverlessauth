@@ -265,6 +265,7 @@ export default async (req: NowRequest, res: NowResponse) => {
     // insert session with user_id, token, expires_at and remaining with default values
     const insertedSessionOutput = await insertOneSession({
         user_id: userId,
+        request_id: verificationId,
         token: JWToken,
         expires_at: sessionExpiresAt,
     });
