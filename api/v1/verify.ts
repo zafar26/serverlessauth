@@ -1,7 +1,7 @@
 import { NowRequest, NowResponse } from "@vercel/node";
 import { getVerificationRequestByPollId } from "../../data/verificationRequest";
 
-import { getSessionByUserId } from "../../data/session";
+import { getSessionByRequestId } from "../../data/session";
 import {
     forbiddenRequest,
     serverError,
@@ -9,10 +9,7 @@ import {
     verifyRequestType,
     verifyRequestHeaderContentType,
 } from "../../constants";
-import {
-    zuluNowIsBeforeZuluParse,
-    zuluNowIsAfterZuluParse,
-} from "../../utils/helper";
+import { zuluNowIsAfterZuluParse } from "../../utils/helper";
 
 export default async function (req: NowRequest, res: NowResponse) {
     if (req.method != verifyRequestType) {
@@ -85,17 +82,25 @@ export default async function (req: NowRequest, res: NowResponse) {
             return;
         }
     }
-    const session = await getSessionByUserId(data.user_id);
+    const sessionOutput = await getSessionByRequestId(data.id);
+    let session = sessionOutput.data;
+    let sessionError = sessionOutput.error;
 
-    if (session.error) {
+    if (sessionError) {
         res.statusCode = serverError;
         res.send({ message: "Error occured while inserting session" });
         return;
     }
 
-    if (!session.data) {
+    if (!session) {
         res.statusCode = forbiddenRequest;
         res.send({ message: "no session found" });
+        return;
+    }
+
+    if (zuluNowIsAfterZuluParse(session.expires_at)) {
+        res.statusCode = forbiddenRequest;
+        res.send({ message: "session expired" });
         return;
     }
 
@@ -103,7 +108,7 @@ export default async function (req: NowRequest, res: NowResponse) {
     res.send({
         message: "success",
         verification_status: "Verified",
-        token: session.data.token,
+        token: session,
     });
     return;
 }

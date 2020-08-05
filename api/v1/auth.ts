@@ -19,8 +19,7 @@ import {
 } from "../../constants";
 import {
     addMinutesToZuluNow,
-    zuluNowIsBeforeZuluParse,
-    zuluNow,
+    zuluNowIsBeforeZuluParse
 } from "../../utils/helper";
 
 export default async (req: NowRequest, res: NowResponse) => {
@@ -160,12 +159,8 @@ export default async (req: NowRequest, res: NowResponse) => {
                 return;
             }
 
-            console.log("got here");
-
             // assign userId
             userId = insertedUser.id;
-
-            console.log(userId);
         } else {
             // check user is_enabled
             if (!user.is_enabled) {
@@ -207,8 +202,6 @@ export default async (req: NowRequest, res: NowResponse) => {
 
     // check verification_request existence in db
     if (verificationRequest) {
-        console.log(verificationRequest);
-        console.log(zuluNow());
         // check previous request expiration
         if (zuluNowIsBeforeZuluParse(verificationRequest.expires_at)) {
             res.statusCode = forbiddenRequest;
