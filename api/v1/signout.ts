@@ -50,38 +50,11 @@ export default async function (req: NowRequest, res: NowResponse) {
         return;
     }
 
-    if (req.headers["content-type"] != signoutRequestHeaderContentType) {
-        res.statusCode = forbiddenRequest;
-        res.send({
-            message: "invalid request header content-type",
-        });
-        return;
-    }
-
-    // check request body data
-    if (!req.body) {
-        res.statusCode = forbiddenRequest;
-        res.send({
-            message: "got empty request body",
-        });
-        return;
-    }
-
-    if (!req.body.userId) {
-        res.statusCode = forbiddenRequest;
-        res.send({
-            message: "missing required data in request body",
-        });
-        return;
-    }
-
-    const { userId } = req.body;
-
     let currentTime = zuluNow();
 
     let obj = { expires_at: currentTime, updated_at: currentTime };
 
-    const { data, error } = await sessionSignout(userId, token, obj);
+    const { data, error } = await sessionSignout(token, obj);
 
     if (error) {
         res.statusCode = serverError;

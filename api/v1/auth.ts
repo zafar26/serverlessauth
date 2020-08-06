@@ -19,7 +19,7 @@ import {
 } from "../../constants";
 import {
     addMinutesToZuluNow,
-    zuluNowIsBeforeZuluParse
+    zuluNowIsBeforeZuluParse,
 } from "../../utils/helper";
 
 export default async (req: NowRequest, res: NowResponse) => {
@@ -249,6 +249,7 @@ export default async (req: NowRequest, res: NowResponse) => {
 
     // assign verification_token
     const token = insertedVerificationRequest.verification_token;
+    const pollId = insertedVerificationRequest.poll_id;
 
     // send email with confirmation link
     const mailerOutput = await mailer(
@@ -269,6 +270,7 @@ export default async (req: NowRequest, res: NowResponse) => {
     res.statusCode = okRequest;
     res.send({
         message: "success",
+        pollId: pollId,
     });
     return;
 };
