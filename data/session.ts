@@ -26,9 +26,9 @@ export const getSessionByRequestId = async (requestId) => {
     return output;
 };
 
-export const sessionSignout = async (userId, token, obj) => {
-    const query = `mutation ($userId:bigint!,$token:String!, $setSession:session_set_input!){
-        update_session(where: {user_id: {_eq: $userId}, _and: {token: {_eq:$token }}}, _set: $setSession) {
+export const sessionSignout = async (token, obj) => {
+    const query = `mutation ($token:String!, $setSession:session_set_input!){
+        update_session(where: {token: {_eq: $token}}, _set: $setSession) {
             affected_rows
             returning {
                 id
@@ -40,7 +40,7 @@ export const sessionSignout = async (userId, token, obj) => {
             }
         }
     }`;
-    const variables = { userId, token: token, setSession: obj };
+    const variables = { token: token, setSession: obj };
 
     let output = { data: null, error: null };
     await fetcher(query, variables)
